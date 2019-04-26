@@ -7,7 +7,7 @@
 server目录下存放的是:ca证书和服务器相关密钥证书.
 client目录下存放的是:client相关密钥证书.
 
-##配合docker远程访问使用
+## 配合docker远程访问使用
 - 将生成的server目录下的文件copy到/etc/docker 目录下。
 
 - 修改文件 /lib/systemd/system/docker.service 
@@ -35,6 +35,7 @@ Certificates folder:中输入： ~/ca
 
 - 正常的话，就会显示： Connection successful.
 就可以远程对服务器进行安全的docker操作了。
+
 
 - 参考 :
 
