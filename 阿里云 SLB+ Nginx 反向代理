@@ -1,0 +1,113 @@
+1. ## 在阿里云购买负载均衡SLB服务，选择公网类型。
+
+2. ## 在ubuntu 16.04 上安装 openresty
+```
+    # 导入GPG 密钥：
+    wget -qO - https://openresty.org/package/pubkey.gpg | sudo apt-key add -
+
+    # 安装 add-apt-repository 命令
+    # （之后你可以删除这个包以及对应的关联包）
+    sudo apt-get -y install software-properties-common
+
+    # 添加我们官方 official APT 仓库：
+    sudo add-apt-repository -y "deb http://openresty.org/package/ubuntu $(lsb_release -sc) main"
+
+    # 更新 APT 索引：
+    sudo apt-get update
+然后就可以像下面这样安装软件包，比如 openresty：
+
+    sudo apt-get install openresty
+
+之后，openresty会被安装到/usr/local/openresty目录下，目录结构如下
+
+root@forever:/usr/local# cd openresty/
+root@forever:/usr/local/openresty# ls
+bin  luajit  lualib  nginx  openssl  pcre  site  zlib
+
+然后编辑 vi /etc/environment 将nginx 路径加入。完成后结果应该类似如下：
+root@openresty-nginx:/usr/local/openresty/nginx/conf# cat /etc/environment 
+
+PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:/usr/local/openresty/nginx/sbin"
+
+cd /usr/local/openresty/nginx/conf
+编辑 nginx.conf 文件：加入
+将server_name localhost;改为
+server_name  39.107.207.199;
+#这个IP地址 是公网SLB的地址
+include /usr/local/openresty/nginx/conf/reverse-proxy.conf;
+引用了一个reverse-proxy.conf文件，里面是配置了详细的代理的信息,以后所有后端服务器的代理配置都在这个文件里设置。
+完成后如下：
+
+root@openresty-nginx:/usr/local/openresty/nginx/conf# cat nginx.conf|grep -v ^$|grep -v "^    #"
+#user  nobody;
+worker_processes  4;
+#error_log  logs/error.log;
+#error_log  logs/error.log  notice;
+#error_log  logs/error.log  info;
+#pid        logs/nginx.pid;
+events {
+    worker_connections  1024;
+}
+http {
+    include       mime.types;
+    default_type  application/octet-stream;
+
+    include /usr/local/openresty/nginx/conf/reverse-proxy.conf;
+    sendfile        on;
+    keepalive_timeout  65;
+    server {
+        listen       80;
+        server_name  39.107.207.199;
+        #charset koi8-r;
+        #access_log  logs/host.access.log  main;
+        location / {
+            root   html;
+            index  index.html index.htm;
+        }
+        #error_page  404              /404.html;
+        # redirect server error pages to the static page /50x.html
+        #
+        error_page   500 502 503 504  /50x.html;
+        location = /50x.html {
+            root   html;
+        }
+    }
+}
+
+vi reverse-proxy.conf 文件
+完成后如下：
+
+root@openresty-nginx:/usr/local/openresty/nginx/conf# cat reverse-proxy.conf 
+server {
+    listen 80;
+    server_name wiki.1zhao.com;
+    location / {
+        proxy_redirect off;
+        proxy_set_header host $host;
+        proxy_set_header x-real-ip $remote_addr;
+        proxy_set_header x-forwarded-for $proxy_add_x_forwarded_for;
+        proxy_pass http://192.168.0.41:80; # 转发到wiki上
+    }
+    access_log /usr/local/openresty/nginx/logs/wiki.1zhao.com.log;
+}
+
+server {
+    listen 80;
+    server_name zentao.1zhao.com;
+    location / {
+        proxy_redirect off;
+        proxy_set_header host $host;
+        proxy_set_header x-real-ip $remote_addr;
+        proxy_set_header x-forwarded-for $proxy_add_x_forwarded_for;
+        proxy_pass http://192.168.0.41:8080; #转发到zentao上
+    }
+    access_log /usr/local/openresty/nginx/logs/zentao.1zhao.com.log;
+}
+
+配置完后，
+nginx -t #测试配置文件是否正确
+nginx -s reload #不重启nginx的情况下，更新配置文件。
+nginx # 启动nginx
+killall nginx # 停止nginx
+
+将两台 ECS 按上面配置设置好，将这两台ECS 加入负载均衡的默认服务器组中，并配置好监听端口，就完成了nginx反向代理域名服务器的双机热备，避免了单点故障，两台nginx只要有一台可用，就不会影响访问后端服务器。
