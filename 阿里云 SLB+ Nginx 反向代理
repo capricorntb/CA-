@@ -38,13 +38,8 @@ include /usr/local/openresty/nginx/conf/reverse-proxy.conf;
 引用了一个reverse-proxy.conf文件，里面是配置了详细的代理的信息,以后所有后端服务器的代理配置都在这个文件里设置。
 完成后如下：
 
-root@openresty-nginx:/usr/local/openresty/nginx/conf# cat nginx.conf|grep -v ^$|grep -v "^    #"
-#user  nobody;
+root@openresty-nginx:/usr/local/openresty/nginx/conf# cat nginx.conf|grep -Ev '^$|\n*#' 
 worker_processes  4;
-#error_log  logs/error.log;
-#error_log  logs/error.log  notice;
-#error_log  logs/error.log  info;
-#pid        logs/nginx.pid;
 events {
     worker_connections  1024;
 }
@@ -57,22 +52,18 @@ http {
     keepalive_timeout  65;
     server {
         listen       80;
-        server_name  39.107.207.199;
-        #charset koi8-r;
-        #access_log  logs/host.access.log  main;
+        server_name  139.107.207.19;
         location / {
             root   html;
             index  index.html index.htm;
         }
-        #error_page  404              /404.html;
-        # redirect server error pages to the static page /50x.html
-        #
         error_page   500 502 503 504  /50x.html;
         location = /50x.html {
             root   html;
         }
     }
 }
+
 
 vi reverse-proxy.conf 文件
 完成后如下：
