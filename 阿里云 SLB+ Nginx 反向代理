@@ -80,7 +80,7 @@ vi reverse-proxy.conf 文件
 root@openresty-nginx:/usr/local/openresty/nginx/conf# cat reverse-proxy.conf 
 server {
     listen 80;
-    server_name wiki.1zhao.com;
+    server_name wiki.test.com;
     location / {
         proxy_redirect off;
         proxy_set_header host $host;
@@ -88,12 +88,12 @@ server {
         proxy_set_header x-forwarded-for $proxy_add_x_forwarded_for;
         proxy_pass http://192.168.0.41:80; # 转发到wiki上
     }
-    access_log /usr/local/openresty/nginx/logs/wiki.1zhao.com.log;
+    access_log /usr/local/openresty/nginx/logs/wiki.test.com.log;
 }
 
 server {
     listen 80;
-    server_name zentao.1zhao.com;
+    server_name zentao.test.com;
     location / {
         proxy_redirect off;
         proxy_set_header host $host;
@@ -101,7 +101,7 @@ server {
         proxy_set_header x-forwarded-for $proxy_add_x_forwarded_for;
         proxy_pass http://192.168.0.41:8080; #转发到zentao上
     }
-    access_log /usr/local/openresty/nginx/logs/zentao.1zhao.com.log;
+    access_log /usr/local/openresty/nginx/logs/zentao.test.com.log;
 }
 
 配置完后，
