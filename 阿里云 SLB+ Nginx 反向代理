@@ -32,7 +32,7 @@ PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/u
 cd /usr/local/openresty/nginx/conf
 编辑 nginx.conf 文件：加入
 将server_name localhost;改为
-server_name  39.107.207.199;
+server_name  139.107.207.19;
 #这个IP地址 是公网SLB的地址
 include /usr/local/openresty/nginx/conf/reverse-proxy.conf;
 引用了一个reverse-proxy.conf文件，里面是配置了详细的代理的信息,以后所有后端服务器的代理配置都在这个文件里设置。
